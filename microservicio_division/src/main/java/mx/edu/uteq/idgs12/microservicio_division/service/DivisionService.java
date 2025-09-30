@@ -16,5 +16,19 @@ public class DivisionService {
         this.divisionRepository = divisionRepository;
     }
 
-    
+    public List<Division> listar() {
+        return divisionRepository.findAll();
+    }
+
+    public Optional<Division> obtenerPorId(Integer id) {
+        return divisionRepository.findById(id);
+    }
+
+    public Division guardar(Division division) {
+        return divisionRepository.save(division);
+    }
+
+    public void eliminar(Integer id) {
+        divisionRepository.deleteById(id);
+    }
 }
