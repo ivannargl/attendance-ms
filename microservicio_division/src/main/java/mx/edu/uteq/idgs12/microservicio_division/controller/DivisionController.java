@@ -23,5 +23,39 @@ public class DivisionController {
     }
 
 
-    
+    @GetMapping
+    public List<Division> listar() {
+        return divisionService.listar();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Division> obtenerPorId(@PathVariable Integer id) {
+        return divisionService.obtenerPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public Division guardar(@RequestBody Division division) {
+        return divisionService.guardar(division);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Division> actualizar(@PathVariable Integer id, @RequestBody Division division) {
+        return divisionService.obtenerPorId(id)
+                .map(d -> {
+                    d.setNombre(division.getNombre());
+                    return ResponseEntity.ok(divisionService.guardar(d));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
+        if (divisionService.obtenerPorId(id).isPresent()) {
+            divisionService.eliminar(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
 }
