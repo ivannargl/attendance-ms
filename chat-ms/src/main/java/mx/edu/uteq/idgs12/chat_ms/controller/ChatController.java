@@ -33,9 +33,59 @@ public class ChatController {
         return chatService.getConversationsByUser(userId).stream().map(conv -> {
             ConversationDTO dto = new ConversationDTO();
             dto.setId(conv.getId());
-            dto.setTitle(conv.getTitle());
             dto.setType(conv.getType());
             dto.setCreatedAt(conv.getCreatedAt());
+
+            // Si el chat es PRIVATE, obtener el otro usuario
+            if ("PRIVATE".equalsIgnoreCase(conv.getType())) {
+                List<Participant> participants = conv.getParticipants();
+                participants.stream()
+                    .filter(p -> !p.getUserId().equals(userId))
+                    .findFirst()
+                    .ifPresent(other -> {
+                        try {
+                            Map<String, Object> userData = userClient.getUserById(other.getUserId());
+                            if (userData != null) {
+                                String firstName = (String) userData.get("firstName");
+                                String lastName = (String) userData.get("lastName");
+                                dto.setTitle(firstName + " " + lastName);
+                                dto.setAvatar((String) userData.get("profileImage"));
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Error obteniendo datos del usuario remoto: " + e.getMessage());
+                            dto.setTitle("Chat privado");
+                        }
+                    });
+            } else {
+                // Chats de grupo sí usan título normal
+                dto.setTitle(conv.getTitle());
+            }
+
+            // Último mensaje
+            if (conv.getMessages() != null && !conv.getMessages().isEmpty()) {
+                conv.getMessages().stream()
+                    .max((m1, m2) -> m1.getSentAt().compareTo(m2.getSentAt()))
+                    .ifPresent(lastMsg -> {
+                        dto.setLastMessage(lastMsg.getContent());
+                        dto.setLastMessageTime(lastMsg.getSentAt());
+
+                        // Saber si el último mensaje es del usuario actual
+                        dto.setLastMessageMine(lastMsg.getSenderId().equals(userId));
+
+                        try {
+                            Map<String, Object> senderData = userClient.getUserById(lastMsg.getSenderId());
+                            if (senderData != null) {
+                                String senderName = senderData.get("firstName") + " " + senderData.get("lastName");
+                                dto.setLastMessageSender(senderName);
+                            } else {
+                                dto.setLastMessageSender("Usuario");
+                            }
+                        } catch (Exception e) {
+                            dto.setLastMessageSender("Usuario");
+                        }
+                    });
+            }
+
             return dto;
         }).collect(Collectors.toList());
     }
