@@ -1,18 +1,20 @@
 package mx.edu.uteq.idgs12.chat_ms.controller;
 
-import mx.edu.uteq.idgs12.chat_ms.client.UserClient;
 import mx.edu.uteq.idgs12.chat_ms.dto.ConversationDTO;
 import mx.edu.uteq.idgs12.chat_ms.dto.MessageDTO;
 import mx.edu.uteq.idgs12.chat_ms.dto.ParticipantDTO;
 import mx.edu.uteq.idgs12.chat_ms.entity.Conversation;
 import mx.edu.uteq.idgs12.chat_ms.entity.Message;
 import mx.edu.uteq.idgs12.chat_ms.entity.Participant;
+import mx.edu.uteq.idgs12.chat_ms.mapper.ChatMapper;
 import mx.edu.uteq.idgs12.chat_ms.service.ChatService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -20,99 +22,37 @@ import java.util.stream.Collectors;
 public class ChatController {
 
     private final ChatService chatService;
-    private final UserClient userClient;
+    private final ChatMapper chatMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public ChatController(ChatService chatService, UserClient userClient) {
+    public ChatController(ChatService chatService, ChatMapper chatMapper, SimpMessagingTemplate messagingTemplate) {
         this.chatService = chatService;
-        this.userClient = userClient;
+        this.chatMapper = chatMapper;
+        this.messagingTemplate = messagingTemplate;
     }
 
-    // === Conversations ===
+    // =========================================================
+    // === CONVERSATIONS ===
+    // =========================================================
+
     @GetMapping("/{userId}")
     public List<ConversationDTO> listConversationsByUser(@PathVariable Long userId) {
-        return chatService.getConversationsByUser(userId).stream().map(conv -> {
-            ConversationDTO dto = new ConversationDTO();
-            dto.setId(conv.getId());
-            dto.setType(conv.getType());
-            dto.setCreatedAt(conv.getCreatedAt());
-
-            // Si el chat es PRIVATE, obtener el otro usuario
-            if ("PRIVATE".equalsIgnoreCase(conv.getType())) {
-                List<Participant> participants = conv.getParticipants();
-                participants.stream()
-                    .filter(p -> !p.getUserId().equals(userId))
-                    .findFirst()
-                    .ifPresent(other -> {
-                        try {
-                            Map<String, Object> userData = userClient.getUserById(other.getUserId());
-                            if (userData != null) {
-                                String firstName = (String) userData.get("firstName");
-                                String lastName = (String) userData.get("lastName");
-                                dto.setTitle(firstName + " " + lastName);
-                                dto.setAvatar((String) userData.get("profileImage"));
-                            }
-                        } catch (Exception e) {
-                            System.err.println("Error obteniendo datos del usuario remoto: " + e.getMessage());
-                            dto.setTitle("Chat privado");
-                        }
-                    });
-            } else {
-                // Chats de grupo sí usan título normal
-                dto.setTitle(conv.getTitle());
-            }
-
-            // Último mensaje
-            if (conv.getMessages() != null && !conv.getMessages().isEmpty()) {
-                conv.getMessages().stream()
-                    .max((m1, m2) -> m1.getSentAt().compareTo(m2.getSentAt()))
-                    .ifPresent(lastMsg -> {
-                        dto.setLastMessage(lastMsg.getContent());
-                        dto.setLastMessageTime(lastMsg.getSentAt());
-
-                        // Saber si el último mensaje es del usuario actual
-                        dto.setLastMessageMine(lastMsg.getSenderId().equals(userId));
-
-                        try {
-                            Map<String, Object> senderData = userClient.getUserById(lastMsg.getSenderId());
-                            if (senderData != null) {
-                                String senderName = senderData.get("firstName") + " " + senderData.get("lastName");
-                                dto.setLastMessageSender(senderName);
-                            } else {
-                                dto.setLastMessageSender("Usuario");
-                            }
-                        } catch (Exception e) {
-                            dto.setLastMessageSender("Usuario");
-                        }
-                    });
-            }
-
-            return dto;
-        }).collect(Collectors.toList());
+        return chatService.getConversationsByUser(userId).stream()
+                .map(conv -> chatMapper.toConversationDTO(conv, userId))
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/detail/{id}")
     public ResponseEntity<ConversationDTO> getConversation(@PathVariable Long id) {
         return chatService.getConversationById(id)
-                .map(conv -> {
-                    ConversationDTO dto = new ConversationDTO();
-                    dto.setId(conv.getId());
-                    dto.setTitle(conv.getTitle());
-                    dto.setType(conv.getType());
-                    dto.setCreatedAt(conv.getCreatedAt());
-                    return ResponseEntity.ok(dto);
-                })
+                .map(conv -> chatMapper.toConversationDTO(conv, null))
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public ConversationDTO createConversation(@RequestBody Conversation conversation) {
-        Conversation saved = chatService.saveConversation(conversation);
-        ConversationDTO dto = new ConversationDTO();
-        dto.setId(saved.getId());
-        dto.setTitle(saved.getTitle());
-        dto.setType(saved.getType());
-        dto.setCreatedAt(saved.getCreatedAt());
-        return dto;
+        return chatMapper.toConversationDTO(chatService.saveConversation(conversation), null);
     }
 
     @DeleteMapping("/{id}")
@@ -121,76 +61,63 @@ public class ChatController {
         return ResponseEntity.noContent().build();
     }
 
-    // === Messages ===
+    // =========================================================
+    // === MESSAGES ===
+    // =========================================================
+
     @GetMapping("/messages/{conversationId}")
     public List<MessageDTO> getMessages(@PathVariable Long conversationId) {
-        return chatService.getMessagesByConversation(conversationId).stream().map(msg -> {
-            MessageDTO dto = new MessageDTO();
-            dto.setId(msg.getId());
-            dto.setConversationId(msg.getConversation().getId());
-            dto.setSenderId(msg.getSenderId());
-            dto.setContent(msg.getContent());
-            dto.setRead(msg.isRead());
-            dto.setSentAt(msg.getSentAt());
-
-            // Obtener información del usuario
-            try {
-                Map<String, Object> userData = userClient.getUserById(msg.getSenderId());
-                if (userData != null) {
-                    String firstName = (String) userData.get("firstName");
-                    String lastName = (String) userData.get("lastName");
-                    dto.setSenderName(firstName + " " + lastName);
-                    dto.setSenderAvatar((String) userData.get("profileImage"));
-                }
-            } catch (Exception e) {
-                System.err.println("Error obteniendo datos del usuario " + msg.getSenderId() + ": " + e.getMessage());
-            }
-
-            return dto;
-        }).collect(Collectors.toList());
+        return chatService.getMessagesByConversation(conversationId).stream()
+                .map(chatMapper::toMessageDTO)
+                .collect(Collectors.toList());
     }
 
-    @PostMapping("/messages/{conversationId}")
-    public MessageDTO sendMessage(@PathVariable Long conversationId, @RequestBody Message message) {
-        Conversation conversation = new Conversation();
-        conversation.setId(conversationId);
-        message.setConversation(conversation);
+    @PostMapping({"/messages", "/messages/{conversationId}"})
+    public MessageDTO sendMessage(
+            @PathVariable(required = false) Long conversationId,
+            @RequestBody MessageDTO dto) {
 
-        Message saved = chatService.saveMessage(message);
+        Conversation conversation = Optional.ofNullable(conversationId)
+                .flatMap(chatService::getConversationById)
+                .orElseGet(() -> chatService.createPrivateConversation(dto.getSenderId(), dto.getReceiverId()));
 
-        MessageDTO dto = new MessageDTO();
-        dto.setId(saved.getId());
-        dto.setConversationId(saved.getConversation().getId());
-        dto.setSenderId(saved.getSenderId());
-        dto.setContent(saved.getContent());
-        dto.setRead(saved.isRead());
-        dto.setSentAt(saved.getSentAt());
-        return dto;
+        Message saved = chatService.saveMessage(new Message(
+                null,
+                conversation,
+                dto.getSenderId(),
+                dto.getContent(),
+                false,
+                LocalDateTime.now()
+        ));
+
+        MessageDTO res = chatMapper.toMessageDTO(saved);
+        messagingTemplate.convertAndSend("/topic/conversation/" + conversation.getId(), res);
+        return res;
     }
 
-    // === Participants ===
+    @PatchMapping("/messages/{id}/read")
+    public ResponseEntity<MessageDTO> markMessageAsRead(@PathVariable Long id) {
+        return chatService.getMessageById(id)
+                .map(msg -> {
+                    msg.setRead(true);
+                    return ResponseEntity.ok(chatMapper.toMessageDTO(chatService.saveMessage(msg)));
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // =========================================================
+    // === PARTICIPANTS ===
+    // =========================================================
+
     @GetMapping("/participants/{userId}")
     public List<ParticipantDTO> getUserConversations(@PathVariable Long userId) {
-        return chatService.getParticipantsByUser(userId).stream().map(p -> {
-            ParticipantDTO dto = new ParticipantDTO();
-            dto.setId(p.getId());
-            dto.setConversationId(p.getConversation().getId());
-            dto.setUserId(p.getUserId());
-            dto.setRole(p.getRole());
-            dto.setJoinedAt(p.getJoinedAt());
-            return dto;
-        }).collect(Collectors.toList());
+        return chatService.getParticipantsByUser(userId).stream()
+                .map(chatMapper::toParticipantDTO)
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/participants")
     public ParticipantDTO addParticipant(@RequestBody Participant participant) {
-        Participant saved = chatService.saveParticipant(participant);
-        ParticipantDTO dto = new ParticipantDTO();
-        dto.setId(saved.getId());
-        dto.setConversationId(saved.getConversation().getId());
-        dto.setUserId(saved.getUserId());
-        dto.setRole(saved.getRole());
-        dto.setJoinedAt(saved.getJoinedAt());
-        return dto;
+        return chatMapper.toParticipantDTO(chatService.saveParticipant(participant));
     }
 }

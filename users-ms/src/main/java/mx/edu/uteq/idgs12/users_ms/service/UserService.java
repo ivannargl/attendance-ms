@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -107,6 +108,13 @@ public class UserService {
 
     public Optional<UserResponseDTO> getUserById(Integer id) {
         return userRepository.findById(id).map(this::mapToResponse);
+    }
+
+    public List<UserResponseDTO> getUsersByUniversity(Integer idUniversity) {
+    return userRepository.findByIdUniversity(idUniversity).stream()
+            .filter(u -> !u.getStatus().equals(false))
+            .map(this::mapToResponse)
+            .toList();
     }
 
     /** Convertir Entity -> DTO */

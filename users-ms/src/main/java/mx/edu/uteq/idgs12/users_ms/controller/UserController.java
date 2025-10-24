@@ -7,6 +7,7 @@ import mx.edu.uteq.idgs12.users_ms.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -63,5 +64,11 @@ public class UserController {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/university/{idUniversity}")
+    public ResponseEntity<List<UserResponseDTO>> getUsersByUniversity(@PathVariable Integer idUniversity) {
+        List<UserResponseDTO> users = userService.getUsersByUniversity(idUniversity);
+        return ResponseEntity.ok(users);
     }
 }

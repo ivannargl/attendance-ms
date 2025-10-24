@@ -18,7 +18,7 @@ public class CorsConfig {
         // orígenes permitidos
         config.setAllowedOrigins(List.of("http://localhost:3000"));
         // Métodos permitidos
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH","DELETE", "OPTIONS"));
         // Headers permitidos
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         // Permitir credenciales para cookies

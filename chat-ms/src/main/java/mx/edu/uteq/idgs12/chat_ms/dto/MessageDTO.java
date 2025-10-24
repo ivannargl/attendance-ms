@@ -8,6 +8,7 @@ public class MessageDTO {
     private Long id;
     private Long conversationId;
     private Long senderId;
+    private Long receiverId;
     private String senderName;
     private String senderAvatar;
     private String content;

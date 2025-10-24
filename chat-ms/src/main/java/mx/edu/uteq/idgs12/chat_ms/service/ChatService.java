@@ -8,6 +8,7 @@ import mx.edu.uteq.idgs12.chat_ms.repository.MessageRepository;
 import mx.edu.uteq.idgs12.chat_ms.repository.ParticipantRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,6 +47,29 @@ public class ChatService {
         conversationRepository.deleteById(id);
     }
 
+    public Optional<Conversation> findPrivateConversationBetween(Long user1, Long user2) {
+        List<Conversation> user1Convs = getConversationsByUser(user1);
+        return user1Convs.stream()
+                .filter(conv -> "PRIVATE".equalsIgnoreCase(conv.getType()) &&
+                        conv.getParticipants().stream().anyMatch(p -> p.getUserId().equals(user2)))
+                .findFirst();
+    }
+
+    public Conversation createPrivateConversation(Long senderId, Long receiverId) {
+        return findPrivateConversationBetween(senderId, receiverId)
+                .orElseGet(() -> {
+                    Conversation c = new Conversation();
+                    c.setType("PRIVATE");
+                    c.setCreatedAt(LocalDateTime.now());
+                    c = saveConversation(c);
+
+                    saveParticipant(new Participant(null, c, senderId, null, LocalDateTime.now()));
+                    saveParticipant(new Participant(null, c, receiverId, null, LocalDateTime.now()));
+
+                    return c;
+                });
+    }
+
     // === Messages ===
     public List<Message> getMessagesByConversation(Long conversationId) {
         return messageRepository.findByConversationIdOrderBySentAtAsc(conversationId);
@@ -53,6 +77,10 @@ public class ChatService {
 
     public Message saveMessage(Message message) {
         return messageRepository.save(message);
+    }
+
+    public Optional<Message> getMessageById(Long id) {
+        return messageRepository.findById(id);
     }
 
     // === Participants ===
