@@ -17,20 +17,21 @@ attendance-ms/
 └── README.md        → Documentación general
 ```
 
-Cada módulo es una app Spring Boot independiente con su propia configuración y base de datos (algunas compartidas).
+Cada módulo es una aplicación Spring Boot independiente con su propia configuración y base de datos (algunas compartidas). Todos utilizan el mismo esquema de autenticación JWT.
 
 ---
 
 ## Tecnologías principales
 
-| Componente        | Versión | Descripción              |
-| ----------------- | ------- | ------------------------ |
-| Java              | 21      | Lenguaje principal       |
-| Spring Boot       | 3.5.6   | Framework backend        |
-| PostgreSQL (Neon) | 17      | Base de datos en la nube |
-| Hibernate ORM     | 6.6     | ORM para JPA             |
-| HikariCP          | -       | Pool de conexiones       |
-| Maven             | 4.0     | Gestión de dependencias  |
+| Componente        | Versión | Descripción                |
+| ----------------- | ------- | -------------------------- |
+| Java              | 21      | Lenguaje principal         |
+| Spring Boot       | 3.5.6   | Framework backend          |
+| PostgreSQL (Neon) | 17      | Base de datos en la nube   |
+| Hibernate ORM     | 6.6     | ORM para JPA               |
+| HikariCP          | -       | Pool de conexiones         |
+| Maven             | 4.0     | Gestión de dependencias    |
+| JWT (JJWT)        | 0.12+   | Autenticación centralizada |
 
 ---
 
@@ -79,11 +80,18 @@ setx CHAT_DB_PASSWORD "********"
 setx CHAT_SERVER_PORT "8085"
 ```
 
+### JWT (compartido entre todos los microservicios)
+
+```bash
+setx JWT_SECRET_KEY "yT7N4p9q3XrFv8zWb2GkR5hL0sPjQ1tYd9VwE6mHnB3uA5rKx8TzJ2cL4nF7vQ0p"
+setx JWT_EXPIRATION_MS "3600000"
+```
+
 Verificar:
 
 ```bash
 echo $env:ACADEMIC_DB_URL
-echo $env:USERS_DB_URL
+echo $env:JWT_SECRET_KEY
 ```
 
 ---
@@ -104,14 +112,10 @@ server.port=${<PREFIX>_SERVER_PORT:<default_port>}
 
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
-```
 
-Ejemplo (`users-ms`):
-
-```properties
-spring.application.name=users-ms
-spring.datasource.url=${USERS_DB_URL}
-server.port=${USERS_SERVER_PORT:8081}
+# JWT Configuración global
+JWT_SECRET_KEY=${JWT_SECRET_KEY}
+JWT_EXPIRATION_MS=${JWT_EXPIRATION_MS:3600000}
 ```
 
 ---
@@ -142,7 +146,7 @@ gcloud run deploy <nombre-ms> \
   --image gcr.io/<proyecto>/<nombre-ms> \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars "<PREFIX>_DB_URL=...,<PREFIX>_DB_USER=...,<PREFIX>_DB_PASSWORD=...,<PREFIX>_SERVER_PORT=..."
+  --set-env-vars "<PREFIX>_DB_URL=...,<PREFIX>_DB_USER=...,<PREFIX>_DB_PASSWORD=...,<PREFIX>_SERVER_PORT=...,JWT_SECRET_KEY=...,JWT_EXPIRATION_MS=..."
 ```
 
 ---
