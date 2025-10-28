@@ -10,7 +10,7 @@ import mx.edu.uteq.idgs12.academic_ms.dto.DivisionDTO;
 import mx.edu.uteq.idgs12.academic_ms.service.DivisionService;
 
 @RestController
-@RequestMapping("/api/division")
+@RequestMapping("/api/divisions")
 public class DivisionController {
 
     private final DivisionService divisionService;
