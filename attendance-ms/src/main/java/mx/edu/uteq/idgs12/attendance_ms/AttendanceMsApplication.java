@@ -1,13 +1,13 @@
-package mx.edu.uteq.idgs12.microservicio_division;
+package mx.edu.uteq.idgs12.attendance_ms;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MicroservicioDivisionApplication {
+public class AttendanceMsApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(MicroservicioDivisionApplication.class, args);
+		SpringApplication.run(AttendanceMsApplication.class, args);
 	}
 
 }

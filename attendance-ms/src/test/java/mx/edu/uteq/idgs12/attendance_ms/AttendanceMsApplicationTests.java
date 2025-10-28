@@ -1,10 +1,10 @@
-package mx.edu.uteq.idgs12.microservicio_division;
+package mx.edu.uteq.idgs12.attendance_ms;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class MicroservicioDivisionApplicationTests {
+class AttendanceMsApplicationTests {
 
 	@Test
 	void contextLoads() {
