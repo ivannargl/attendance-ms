@@ -22,9 +22,6 @@ public class Group {
     @Column(length = 20, nullable = false)
     private String groupCode;
 
-    @Column(length = 150, nullable = false)
-    private String groupName;
-
     @Column(length = 20)
     private String semester;
 

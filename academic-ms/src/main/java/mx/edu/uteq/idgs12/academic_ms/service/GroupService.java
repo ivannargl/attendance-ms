@@ -21,8 +21,10 @@ public class GroupService {
 
     @Autowired
     private GroupRepository groupRepository;
+
     @Autowired
     private ProgramRepository programRepository;
+    
     @Autowired
     private UserClient userClient;
 
@@ -122,7 +124,15 @@ public class GroupService {
         } catch (Exception e) {
             dto.setTutorName("No disponible");
         }
-
+    
+        // Obtener número de inscripciones desde users-ms
+        try {
+            Long count = userClient.getEnrollmentCountByGroup(group.getIdGroup());
+            dto.setEnrollmentCount(count);
+        } catch (Exception e) {
+            dto.setEnrollmentCount(0L);
+        }
+    
         return dto;
     }
 

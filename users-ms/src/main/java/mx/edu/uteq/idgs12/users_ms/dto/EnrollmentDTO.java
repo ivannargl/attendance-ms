@@ -9,7 +9,7 @@ public class EnrollmentDTO {
     private Integer idStudent;
     private String studentName;
     private Integer idGroup;
-    private String groupName;
+    private String groupCode;
     private LocalDate enrollmentDate;
     private Boolean status;
 }

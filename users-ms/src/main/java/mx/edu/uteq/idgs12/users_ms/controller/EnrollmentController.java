@@ -52,4 +52,10 @@ public class EnrollmentController {
         enrollmentService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/group/{idGroup}/count")
+    public ResponseEntity<Long> getEnrollmentCountByGroup(@PathVariable Integer idGroup) {
+        long count = enrollmentService.countByGroup(idGroup);
+        return ResponseEntity.ok(count);
+    }
 }

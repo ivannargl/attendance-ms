@@ -10,4 +10,5 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     List<Enrollment> findByStudent_IdUser(Integer idStudent);
     List<Enrollment> findByIdGroup(Integer idGroup);
     List<Enrollment> findByStatusTrue();
+    long countByIdGroup(Integer idGroup);
 }

@@ -6,12 +6,12 @@ import lombok.Data;
 public class GroupDTO {
     private Integer idGroup;
     private Integer idProgram;
-    private String programName; // Nombre del programa educativo
+    private String programName;
     private Integer idTutor;
-    private String tutorName;   // Nombre del tutor
+    private String tutorName;
     private String groupCode;
-    private String groupName;
     private String semester;
     private String academicYear;
+    private Long enrollmentCount;
     private Boolean status;
 }

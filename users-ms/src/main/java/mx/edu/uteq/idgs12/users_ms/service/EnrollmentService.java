@@ -20,8 +20,10 @@ public class EnrollmentService {
 
     @Autowired
     private EnrollmentRepository enrollmentRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private AcademicClient academicClient;
 
@@ -82,6 +84,11 @@ public class EnrollmentService {
         enrollmentRepository.deleteById(id);
     }
 
+    // === Contar inscripciones por grupo ===
+    public long countByGroup(Integer idGroup) {
+        return enrollmentRepository.countByIdGroup(idGroup);
+    }
+
     // === Mapper Entity → DTO ===
     private EnrollmentDTO toDTO(Enrollment enrollment) {
         EnrollmentDTO dto = new EnrollmentDTO();
@@ -92,9 +99,9 @@ public class EnrollmentService {
 
         try {
             Map<String, Object> groupData = academicClient.getGroupById(enrollment.getIdGroup());
-            dto.setGroupName((String) groupData.getOrDefault("groupName", "No disponible"));
+            dto.setGroupCode((String) groupData.getOrDefault("groupCode", "No disponible")); // 🔄 cambio aquí
         } catch (Exception e) {
-            dto.setGroupName("No disponible");
+            dto.setGroupCode("No disponible");
         }
 
         return dto;

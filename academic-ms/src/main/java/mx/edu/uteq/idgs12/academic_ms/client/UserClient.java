@@ -10,4 +10,7 @@ public interface UserClient {
 
     @GetMapping("/api/users/{id}")
     UserDTO getUserById(@PathVariable("id") Integer id);
+
+    @GetMapping("/api/enrollments/group/{idGroup}/count")
+    Long getEnrollmentCountByGroup(@PathVariable("idGroup") Integer idGroup);
 }
