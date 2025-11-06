@@ -1,6 +1,5 @@
 package mx.edu.uteq.idgs12.storage_ms.service;
 
-import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
@@ -10,7 +9,6 @@ import mx.edu.uteq.idgs12.storage_ms.repository.FileStorageRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,17 +20,9 @@ public class FileStorageService {
     private final Storage storage;
     private final String bucketName = "roster-storage";
 
-    public FileStorageService(FileStorageRepository fileRepository) throws IOException {
+    public FileStorageService(FileStorageRepository fileRepository) {
         this.fileRepository = fileRepository;
-
-        // ✅ Carga explícita del JSON de credenciales
-        this.storage = StorageOptions.newBuilder()
-                .setProjectId("roster-474406")
-                .setCredentials(ServiceAccountCredentials.fromStream(
-                        new FileInputStream("C:/Projects/attendance-ms/storage-ms/src/keys/roster-474406-464b45aeb0cd.json")
-                ))
-                .build()
-                .getService();
+        this.storage = StorageOptions.getDefaultInstance().getService();
     }
 
     public FileDTO uploadFile(MultipartFile file) throws IOException {
