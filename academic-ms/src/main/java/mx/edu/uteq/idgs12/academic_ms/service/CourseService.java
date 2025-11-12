@@ -4,6 +4,7 @@ import mx.edu.uteq.idgs12.academic_ms.dto.CourseDTO;
 import mx.edu.uteq.idgs12.academic_ms.entity.Course;
 import mx.edu.uteq.idgs12.academic_ms.entity.Division;
 import mx.edu.uteq.idgs12.academic_ms.entity.University;
+import mx.edu.uteq.idgs12.academic_ms.repository.CourseModuleRepository;
 import mx.edu.uteq.idgs12.academic_ms.repository.CourseRepository;
 import mx.edu.uteq.idgs12.academic_ms.repository.DivisionRepository;
 import mx.edu.uteq.idgs12.academic_ms.repository.UniversityRepository;
@@ -29,6 +30,9 @@ public class CourseService {
     @Autowired
     private DivisionRepository divisionRepository;
 
+    @Autowired
+    private CourseModuleRepository courseModuleRepository;
+
     public List<CourseDTO> getByUniversity(Integer idUniversity, Boolean active) {
         return courseRepository.findByUniversity_IdUniversity(idUniversity).stream()
                 .filter(c -> active == null || !active || Boolean.TRUE.equals(c.getStatus()))
@@ -45,7 +49,6 @@ public class CourseService {
 
     @Transactional
     public CourseDTO save(CourseDTO dto) {
-        // Validar código único por universidad
         if (dto.getIdCourse() == null) {
             if (courseRepository.existsByCourseCodeAndUniversity_IdUniversity(dto.getCourseCode(), dto.getIdUniversity())) {
                 throw new RuntimeException("Course code already exists for this university: " + dto.getCourseCode());
@@ -71,20 +74,35 @@ public class CourseService {
         return toDTO(courseRepository.save(course));
     }
 
-    // ==== Helpers ====
+    // Helpers
     private CourseDTO toDTO(Course course) {
         CourseDTO dto = new CourseDTO();
         BeanUtils.copyProperties(course, dto);
+
         dto.setIdUniversity(course.getUniversity().getIdUniversity());
-        dto.setIdDivision(course.getDivision().getIdDivision());
+
+        if (course.getDivision() != null) {
+            dto.setIdDivision(course.getDivision().getIdDivision());
+            dto.setDivisionCode(course.getDivision().getCode());
+            dto.setDivisionName(course.getDivision().getName());
+        }
+
+        // Obtener número de módulos asociados al curso
+        Long modulesCount = courseModuleRepository.countByCourse_IdCourse(course.getIdCourse());
+        dto.setModulesCount(modulesCount != null ? modulesCount : 0L);
+
         return dto;
     }
 
     private Course toEntity(CourseDTO dto) {
         University university = universityRepository.findById(dto.getIdUniversity())
                 .orElseThrow(() -> new RuntimeException("University not found with ID: " + dto.getIdUniversity()));
-        Division division = divisionRepository.findById(dto.getIdDivision())
-                .orElseThrow(() -> new RuntimeException("Division not found with ID: " + dto.getIdDivision()));
+
+        Division division = null;
+        if (dto.getIdDivision() != null) {
+            division = divisionRepository.findById(dto.getIdDivision())
+                    .orElseThrow(() -> new RuntimeException("Division not found with ID: " + dto.getIdDivision()));
+        }
 
         Course course = new Course();
         BeanUtils.copyProperties(dto, course);
