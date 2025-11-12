@@ -1,0 +1,96 @@
+package mx.edu.uteq.idgs12.academic_ms.service;
+
+import mx.edu.uteq.idgs12.academic_ms.dto.CourseDTO;
+import mx.edu.uteq.idgs12.academic_ms.entity.Course;
+import mx.edu.uteq.idgs12.academic_ms.entity.Division;
+import mx.edu.uteq.idgs12.academic_ms.entity.University;
+import mx.edu.uteq.idgs12.academic_ms.repository.CourseRepository;
+import mx.edu.uteq.idgs12.academic_ms.repository.DivisionRepository;
+import mx.edu.uteq.idgs12.academic_ms.repository.UniversityRepository;
+
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+public class CourseService {
+
+    @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
+    private UniversityRepository universityRepository;
+
+    @Autowired
+    private DivisionRepository divisionRepository;
+
+    public List<CourseDTO> getByUniversity(Integer idUniversity, Boolean active) {
+        return courseRepository.findByUniversity_IdUniversity(idUniversity).stream()
+                .filter(c -> active == null || !active || Boolean.TRUE.equals(c.getStatus()))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<CourseDTO> getByDivision(Integer idDivision, Boolean active) {
+        return courseRepository.findByDivision_IdDivision(idDivision).stream()
+                .filter(c -> active == null || !active || Boolean.TRUE.equals(c.getStatus()))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public CourseDTO save(CourseDTO dto) {
+        // Validar código único por universidad
+        if (dto.getIdCourse() == null) {
+            if (courseRepository.existsByCourseCodeAndUniversity_IdUniversity(dto.getCourseCode(), dto.getIdUniversity())) {
+                throw new RuntimeException("Course code already exists for this university: " + dto.getCourseCode());
+            }
+        } else {
+            Optional<Course> existingCourse =
+                    courseRepository.findByCourseCodeAndUniversity_IdUniversity(dto.getCourseCode(), dto.getIdUniversity());
+            if (existingCourse.isPresent() && !existingCourse.get().getIdCourse().equals(dto.getIdCourse())) {
+                throw new RuntimeException("Course code already exists for this university: " + dto.getCourseCode());
+            }
+        }
+
+        Course course = toEntity(dto);
+        Course saved = courseRepository.save(course);
+        return toDTO(saved);
+    }
+
+    @Transactional
+    public CourseDTO updateStatus(Integer id, Boolean status) {
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Course not found with ID: " + id));
+        course.setStatus(status);
+        return toDTO(courseRepository.save(course));
+    }
+
+    // ==== Helpers ====
+    private CourseDTO toDTO(Course course) {
+        CourseDTO dto = new CourseDTO();
+        BeanUtils.copyProperties(course, dto);
+        dto.setIdUniversity(course.getUniversity().getIdUniversity());
+        dto.setIdDivision(course.getDivision().getIdDivision());
+        return dto;
+    }
+
+    private Course toEntity(CourseDTO dto) {
+        University university = universityRepository.findById(dto.getIdUniversity())
+                .orElseThrow(() -> new RuntimeException("University not found with ID: " + dto.getIdUniversity()));
+        Division division = divisionRepository.findById(dto.getIdDivision())
+                .orElseThrow(() -> new RuntimeException("Division not found with ID: " + dto.getIdDivision()));
+
+        Course course = new Course();
+        BeanUtils.copyProperties(dto, course);
+        course.setUniversity(university);
+        course.setDivision(division);
+        course.setStatus(dto.getStatus() != null ? dto.getStatus() : true);
+        return course;
+    }
+}
