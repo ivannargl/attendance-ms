@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -92,15 +91,13 @@ public class CourseService {
         Long modulesCount = courseModuleRepository.countByCourse_IdCourse(course.getIdCourse());
         dto.setModulesCount(modulesCount != null ? modulesCount : 0L);
 
-        // Obtener grupos relacionados desde attendance-ms
+        // Número de grupos asociados (desde attendance-ms)
         try {
-            List<Integer> groupIds = attendanceClient.getGroupIdsByCourse(course.getIdCourse());
-            dto.setGroupIds(groupIds != null ? groupIds : Collections.emptyList());
-            dto.setGroupsCount((long) dto.getGroupIds().size());
+            Long groupsCount = attendanceClient.getGroupsCountByCourse(course.getIdCourse());
+            dto.setGroupsCount(groupsCount != null ? groupsCount : 0L);
         } catch (Exception e) {
-            dto.setGroupIds(Collections.emptyList());
+            // Si el servicio de attendance-ms no responde, no rompe la respuesta
             dto.setGroupsCount(0L);
-            System.err.println("No se pudieron obtener los grupos desde attendance-ms: " + e.getMessage());
         }
 
         return dto;

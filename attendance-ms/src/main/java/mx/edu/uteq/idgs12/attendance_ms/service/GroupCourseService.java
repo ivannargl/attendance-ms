@@ -37,11 +37,8 @@ public class GroupCourseService {
                 .collect(Collectors.toList());
     }
 
-    public List<Integer> getGroupIdsByCourse(Integer idCourse) {
-        return groupCourseRepository.findByIdCourse(idCourse)
-                .stream()
-                .map(GroupCourse::getIdGroup)
-                .collect(Collectors.toList());
+    public Long countByCourse(Integer idCourse) {
+        return groupCourseRepository.countByIdCourse(idCourse);
     }
 
     @Transactional
