@@ -47,6 +47,11 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
+    public Optional<CourseDTO> getById(Integer idCourse) {
+        return courseRepository.findById(idCourse)
+                .map(this::toDTO);
+    }
+
     @Transactional
     public CourseDTO save(CourseDTO dto) {
         if (dto.getIdCourse() == null) {

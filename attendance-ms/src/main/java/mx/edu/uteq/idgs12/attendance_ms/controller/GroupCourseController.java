@@ -32,6 +32,11 @@ public class GroupCourseController {
         return groupCourseService.getByGroup(idGroup);
     }
 
+    @GetMapping("/professor/{idProfessor}")
+    public List<GroupCourseDTO> getByProfessor(@PathVariable Integer idProfessor) {
+        return groupCourseService.getByProfessor(idProfessor);
+    }
+
     @GetMapping("/course/{idCourse}/count")
     public ResponseEntity<Long> countByCourse(@PathVariable Integer idCourse) {
         Long count = groupCourseService.countByCourse(idCourse);

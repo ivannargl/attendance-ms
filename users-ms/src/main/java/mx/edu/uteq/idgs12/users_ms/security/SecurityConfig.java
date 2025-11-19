@@ -31,7 +31,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/auth/register", "api/user/university/{idUniversity}", "/api/user/{id}", "api/enrollments/group/{idGroup}/count").permitAll()
+                        .requestMatchers(
+                            "/api/auth/**",
+                            "/api/auth/register",
+                            "/api/user/university/{idUniversity}",
+                            "/api/user/{id}",
+                            "/api/enrollments/group/{idGroup}/count"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -33,6 +34,14 @@ public class CourseController {
 
         List<CourseDTO> courses = courseService.getByDivision(idDivision, active);
         return ResponseEntity.ok(courses);
+    }
+
+    /** Obtener curso por ID */
+    @GetMapping("/{idCourse}")
+    public ResponseEntity<CourseDTO> getById(@PathVariable Integer idCourse) {
+        Optional<CourseDTO> course = courseService.getById(idCourse);
+        return course.map(ResponseEntity::ok)
+                     .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /** Crear curso */
