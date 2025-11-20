@@ -22,9 +22,7 @@ public class ScheduleService {
     @Autowired
     private ScheduleRepository scheduleRepository;
 
-    /**
-     * 🔹 Obtiene todo el horario de un grupo con sus materias y profesores.
-     */
+    /** Obtiene todo el horario de un grupo con sus materias y profesores */
     public List<GroupCourseWithSchedulesDTO> getSchedulesByGroup(Integer idGroup) {
         List<GroupCourse> groupCourses = groupCourseRepository.findByIdGroup(idGroup);
 
@@ -43,10 +41,7 @@ public class ScheduleService {
         }).collect(Collectors.toList());
     }
 
-    /**
-     * 🔹 Crea o actualiza una relación (grupo–curso–profesor) con sincronización inteligente de horarios.
-     *    Requiere que los horarios existentes envíen su idSchedule en el request.
-     */
+    /** Crea o actualiza una relación (grupo–curso–profesor)*/
     @Transactional
     public GroupCourseWithSchedulesDTO createOrUpdateWithSchedules(ScheduleCreateRequest request) {
         // Buscar si ya existe la relación grupo-curso-profesor
@@ -68,7 +63,7 @@ public class ScheduleService {
 
         final Integer relationId = relation.getIdGroupCourse();
 
-        // === SINCRONIZAR HORARIOS ===
+        // Sincronizar horarios
         List<Schedule> existingSchedules = scheduleRepository.findByIdGroupCourse(relationId);
 
         // Mapa para buscar rápidamente los existentes
@@ -79,11 +74,11 @@ public class ScheduleService {
         List<Schedule> updatedSchedules = request.getSchedules().stream().map(s -> {
             Schedule entity;
             if (s.getIdSchedule() != null && existingMap.containsKey(s.getIdSchedule())) {
-                // 🟡 Actualizar existente
+                // Actualizar existente
                 entity = existingMap.get(s.getIdSchedule());
                 BeanUtils.copyProperties(s, entity, "idSchedule", "idGroupCourse");
             } else {
-                // 🟢 Crear nuevo
+                // Crear nuevo
                 entity = new Schedule();
                 BeanUtils.copyProperties(s, entity);
                 entity.setIdGroupCourse(relationId);
@@ -94,7 +89,7 @@ public class ScheduleService {
         // Guardar los cambios (crea o actualiza)
         scheduleRepository.saveAll(updatedSchedules);
 
-        // 🔴 Eliminar los que ya no estén en el request
+        // Eliminar los que ya no estén en el request
         Set<Integer> requestIds = request.getSchedules().stream()
                 .map(ScheduleDTO::getIdSchedule)
                 .filter(Objects::nonNull)
@@ -122,15 +117,59 @@ public class ScheduleService {
         return response;
     }
 
-    /**
-     * 🔹 Crea o actualiza todos los horarios de un grupo completo (varias materias).
-     *    Este método procesa varios cursos del mismo grupo en un solo request.
-     */
+    /** Crea o actualiza todos los horarios de un grupo completo (varias materias) */
     @Transactional
     public List<GroupCourseWithSchedulesDTO> createOrUpdateGroupSchedules(ScheduleGroupRequest request) {
         return request.getGroupCourses().stream().map(courseReq -> {
             courseReq.setIdGroup(request.getIdGroup());
             return createOrUpdateWithSchedules(courseReq);
         }).collect(Collectors.toList());
+    }
+
+    /** Obtiene el horario más cercano o en curso según la fecha y hora del usuario */
+    public Optional<ScheduleDTO> getClosestSchedule(Integer idGroupCourse, String dateTime) {
+        List<Schedule> schedules = scheduleRepository.findByIdGroupCourse(idGroupCourse);
+        if (schedules.isEmpty()) return Optional.empty();
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.parse(dateTime);
+        java.time.DayOfWeek today = now.getDayOfWeek();
+        java.time.LocalTime currentTime = now.toLocalTime();
+
+        Schedule closest = null;
+        long minMinutes = Long.MAX_VALUE;
+
+        for (Schedule s : schedules) {
+            try {
+                java.time.DayOfWeek scheduleDay = java.time.DayOfWeek.valueOf(s.getDayOfWeek().toUpperCase());
+                java.time.LocalTime start = java.time.LocalTime.parse(s.getStartTime());
+
+                // Diferencia de días (0 = hoy)
+                int dayDiff = (scheduleDay.getValue() - today.getValue() + 7) % 7;
+
+                // Si el horario ya pasó hoy, lo contamos para la próxima semana
+                if (dayDiff == 0 && start.isBefore(currentTime)) {
+                    dayDiff = 7;
+                }
+
+                java.time.LocalDateTime scheduleDateTime = now.plusDays(dayDiff)
+                        .withHour(start.getHour())
+                        .withMinute(start.getMinute());
+
+                long diffMinutes = java.time.Duration.between(now, scheduleDateTime).toMinutes();
+
+                if (diffMinutes >= 0 && diffMinutes < minMinutes) {
+                    minMinutes = diffMinutes;
+                    closest = s;
+                }
+            } catch (Exception e) {
+                // Ignorar errores de formato
+            }
+        }
+
+        if (closest == null) return Optional.empty();
+
+        ScheduleDTO dto = new ScheduleDTO();
+        BeanUtils.copyProperties(closest, dto);
+        return Optional.of(dto);
     }
 }

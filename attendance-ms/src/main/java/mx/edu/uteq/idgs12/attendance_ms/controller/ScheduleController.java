@@ -36,4 +36,18 @@ public class ScheduleController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    /** Obtener el horario más cercano o en curso según la fecha y hora del usuario */
+    @GetMapping("/closest")
+    public ResponseEntity<?> getClosestSchedule(
+            @RequestParam Integer idGroupCourse,
+            @RequestParam String dateTime) {
+        try {
+            return scheduleService.getClosestSchedule(idGroupCourse, dateTime)
+                    .<ResponseEntity<?>>map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.noContent().build());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
