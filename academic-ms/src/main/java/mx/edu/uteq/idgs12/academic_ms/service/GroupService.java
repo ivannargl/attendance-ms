@@ -71,6 +71,13 @@ public class GroupService {
                 .collect(Collectors.toList());
     }
 
+    public List<GroupDTO> getByTutor(Integer idTutor) {
+        return groupRepository.findByIdTutor(idTutor)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public GroupDTO save(GroupDTO dto) {
         Program program = programRepository.findById(dto.getIdProgram())

@@ -74,6 +74,16 @@ public class GroupController {
         return ResponseEntity.ok(groups);
     }
 
+    /** Obtener grupos por tutor */
+    @GetMapping("/tutor/{idTutor}")
+    public ResponseEntity<List<GroupDTO>> getByTutor(@PathVariable Integer idTutor) {
+        List<GroupDTO> groups = groupService.getByTutor(idTutor);
+        if (groups.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(groups);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody GroupDTO dto) {
         try {
