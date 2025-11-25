@@ -5,6 +5,7 @@ import mx.edu.uteq.idgs12.attendance_ms.client.EnrollmentFeignClient;
 import mx.edu.uteq.idgs12.attendance_ms.client.NotificationsFeignClient;
 import mx.edu.uteq.idgs12.attendance_ms.dto.EnrollmentDTO;
 import mx.edu.uteq.idgs12.attendance_ms.dto.NotificationDTO;
+import mx.edu.uteq.idgs12.attendance_ms.dto.AttendanceSessionDTO;
 import mx.edu.uteq.idgs12.attendance_ms.entity.AttendanceSession;
 import mx.edu.uteq.idgs12.attendance_ms.entity.GroupCourse;
 import mx.edu.uteq.idgs12.attendance_ms.repository.AttendanceSessionRepository;
@@ -12,6 +13,7 @@ import mx.edu.uteq.idgs12.attendance_ms.repository.GroupCourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -34,18 +36,26 @@ public class AttendanceSessionService {
     private AcademicFeignClient academicFeignClient;
 
     /**
-     * Inicia un pase de lista, guarda la sesión y notifica a los estudiantes por correo con plantilla HTML.
+     * Inicia un pase de lista con un horario específico seleccionado por el profesor.
      */
     @Transactional
-    public AttendanceSession startSession(AttendanceSession session) {
+    public AttendanceSession startSession(AttendanceSessionDTO dto) {
+        // 🧩 Crear entidad
+        AttendanceSession session = new AttendanceSession();
+        session.setIdGroupCourse(dto.getIdGroupCourse());
+        session.setIdSchedule(dto.getIdSchedule());
+        session.setIdProfessor(dto.getIdProfessor());
+        session.setGeoLatitude(dto.getGeoLatitude());
+        session.setGeoLongitude(dto.getGeoLongitude());
         session.setStatus("OPEN");
         session.setStartTime(LocalDateTime.now());
         session.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+
         sessionRepository.save(session);
 
-        // 1️⃣ Obtener relación grupo-curso
-        GroupCourse relation = groupCourseRepository.findById(session.getIdGroupCourse())
-                .orElseThrow(() -> new RuntimeException("GroupCourse no encontrado con ID: " + session.getIdGroupCourse()));
+        // 1️⃣ Validar la relación grupo-curso
+        GroupCourse relation = groupCourseRepository.findById(dto.getIdGroupCourse())
+                .orElseThrow(() -> new RuntimeException("GroupCourse no encontrado con ID: " + dto.getIdGroupCourse()));
 
         Integer idGroup = relation.getIdGroup();
         Integer idCourse = relation.getIdCourse();
@@ -74,17 +84,19 @@ public class AttendanceSessionService {
 
             if (email == null || fullName == null) continue;
 
-            // ✅ Crear el DTO para el microservicio notifications-ms
+            // ✅ Crear DTO para notifications-ms
             NotificationDTO notification = new NotificationDTO();
             notification.setRecipientEmail(email);
             notification.setSubject("📋 Registro de asistencia – " + courseName);
             notification.setTemplateName("attendance_email_template.html");
 
-            // Variables que se reemplazarán en la plantilla Thymeleaf
+            // Variables reemplazadas en Thymeleaf
             Map<String, Object> vars = new HashMap<>();
             vars.put("studentName", fullName);
             vars.put("courseName", courseName);
-            vars.put("attendanceLink", "https://tuapp.com/attendance/mark?groupCourse=" + session.getIdGroupCourse());
+            vars.put("attendanceLink",
+                    "https://tuapp.com/attendance/mark?groupCourse=" + dto.getIdGroupCourse() +
+                    "&schedule=" + dto.getIdSchedule());
             notification.setTemplateVariables(vars);
 
             try {

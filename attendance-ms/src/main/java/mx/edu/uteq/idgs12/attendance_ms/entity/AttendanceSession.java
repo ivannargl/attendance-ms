@@ -17,6 +17,9 @@ public class AttendanceSession {
     private Integer idGroupCourse;
 
     @Column(nullable = false)
+    private Integer idSchedule;
+
+    @Column(nullable = false)
     private Integer idProfessor;
 
     private Double geoLatitude;
