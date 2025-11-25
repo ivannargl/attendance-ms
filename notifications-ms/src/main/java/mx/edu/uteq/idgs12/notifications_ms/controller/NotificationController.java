@@ -14,18 +14,14 @@ public class NotificationController {
     @Autowired
     private NotificationService notificationService;
 
-    /**
-     * Endpoint general para enviar correos (texto plano o HTML).
-     */
+    /** 🔹 Endpoint general para enviar correos (texto plano o HTML) */
     @PostMapping("/email")
     public ResponseEntity<Notification> sendEmail(@RequestBody NotificationDTO request) {
         Notification notification = notificationService.sendEmail(request);
         return ResponseEntity.ok(notification);
     }
 
-    /**
-     * Endpoint específico para enviar correos de asistencia con plantilla.
-     */
+    /** 🔹 Endpoint específico para enviar correos de asistencia con plantilla */
     @PostMapping("/email/attendance")
     public ResponseEntity<Notification> sendAttendanceEmail(@RequestBody NotificationDTO request) {
         request.setTemplateName("attendance_email_template.html");

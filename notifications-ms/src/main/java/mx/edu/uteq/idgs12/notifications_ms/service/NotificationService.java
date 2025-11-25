@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 public class NotificationService {
@@ -27,9 +27,7 @@ public class NotificationService {
     @Autowired
     private TemplateEngine templateEngine;
 
-    /**
-     * Envía un correo (HTML si se proporcionan variables de plantilla, o texto plano si no).
-     */
+    /** 🔹 Envía un correo (HTML si se proporcionan variables de plantilla, o texto plano si no) */
     public Notification sendEmail(NotificationDTO request) {
         Notification notification = new Notification();
         notification.setRecipientEmail(request.getRecipientEmail());
@@ -39,10 +37,10 @@ public class NotificationService {
 
         try {
             if (request.getTemplateName() != null && !request.getTemplateName().isEmpty()) {
-                // 📧 Envío HTML con plantilla Thymeleaf
+                // Envío HTML con plantilla Thymeleaf
                 sendHtmlEmail(request);
             } else {
-                // ✉️ Envío de texto plano (retrocompatible)
+                // Envío de texto plano (retrocompatible)
                 SimpleMailMessage message = new SimpleMailMessage();
                 message.setTo(request.getRecipientEmail());
                 message.setSubject(request.getSubject());
@@ -51,7 +49,7 @@ public class NotificationService {
             }
 
             notification.setStatus("SENT");
-            notification.setSentAt(LocalDateTime.now());
+            notification.setSentAt(Instant.now());
         } catch (Exception e) {
             notification.setStatus("FAILED");
         }
@@ -59,9 +57,7 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 
-    /**
-     * Genera y envía un correo HTML con plantilla Thymeleaf.
-     */
+    /** 🔹 Genera y envía un correo HTML con plantilla Thymeleaf */
     private void sendHtmlEmail(NotificationDTO request) throws MessagingException {
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
