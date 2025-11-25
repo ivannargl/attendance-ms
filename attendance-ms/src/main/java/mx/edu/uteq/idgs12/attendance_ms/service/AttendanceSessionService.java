@@ -14,7 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Duration; // ✅ CAMBIO
+import java.time.Instant;  // ✅ CAMBIO
 import java.util.*;
 
 @Service
@@ -46,8 +47,8 @@ public class AttendanceSessionService {
         session.setGeoLatitude(dto.getGeoLatitude());
         session.setGeoLongitude(dto.getGeoLongitude());
         session.setStatus("OPEN");
-        session.setStartTime(LocalDateTime.now());
-        session.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+        session.setStartTime(Instant.now());
+        session.setExpiresAt(Instant.now().plus(Duration.ofMinutes(15)));
 
         sessionRepository.save(session);
 

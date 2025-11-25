@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -93,14 +93,16 @@ public class AttendanceService {
                 .orElseThrow(() -> new RuntimeException("No hay una sesión activa para este grupo."));
 
         // Validar tiempo de expiración
-        if (LocalDateTime.now().isAfter(session.getExpiresAt())) {
+        if (Instant.now().isAfter(session.getExpiresAt())) {
             throw new RuntimeException("La sesión de asistencia ya expiró.");
         }
 
         // Validar ubicación si aplica
         if (session.getGeoLatitude() != null && session.getGeoLongitude() != null) {
-            double distancia = calcularDistancia(session.getGeoLatitude(), session.getGeoLongitude(),
-                    dto.getLatitude(), dto.getLongitude());
+            double distancia = calcularDistancia(
+                    session.getGeoLatitude(), session.getGeoLongitude(),
+                    dto.getLatitude(), dto.getLongitude()
+            );
 
             if (distancia > 150) {
                 throw new RuntimeException("Estás fuera del rango permitido para marcar asistencia.");
@@ -111,7 +113,7 @@ public class AttendanceService {
         Attendance attendance = new Attendance();
         attendance.setIdSchedule(session.getIdSchedule());
         attendance.setIdStudent(dto.getIdStudent());
-        attendance.setAttendanceDate(LocalDateTime.now().toString());
+        attendance.setAttendanceDate(Instant.now());
         attendance.setStatus("PRESENT");
 
         Attendance saved = attendanceRepository.save(attendance);

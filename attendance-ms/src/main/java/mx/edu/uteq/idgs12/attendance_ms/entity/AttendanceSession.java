@@ -2,7 +2,8 @@ package mx.edu.uteq.idgs12.attendance_ms.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
 
 @Entity
 @Table(name = "attendance_sessions")
@@ -25,7 +26,12 @@ public class AttendanceSession {
     private Double geoLatitude;
     private Double geoLongitude;
 
+    @Column(nullable = false, length = 20)
     private String status; // OPEN, CLOSED
-    private LocalDateTime startTime;
-    private LocalDateTime expiresAt;
+
+    @Column(nullable = false, columnDefinition = "timestamptz")
+    private Instant startTime;
+
+    @Column(nullable = false, columnDefinition = "timestamptz")
+    private Instant expiresAt;
 }

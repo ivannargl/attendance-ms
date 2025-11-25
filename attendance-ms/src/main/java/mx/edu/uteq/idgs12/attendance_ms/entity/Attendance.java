@@ -3,6 +3,8 @@ package mx.edu.uteq.idgs12.attendance_ms.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "attendances")
 @Data
@@ -18,8 +20,8 @@ public class Attendance {
     @Column(nullable = false)
     private Integer idStudent;
 
-    @Column(nullable = false)
-    private String attendanceDate;
+    @Column(nullable = false, columnDefinition = "timestamptz")
+    private Instant attendanceDate;
 
     @Column(nullable = false, length = 20)
     private String status;
