@@ -113,7 +113,9 @@ public class AttendanceSessionService {
         return sessionRepository.findAll();
     }
 
-    /** 🔹 Obtiene una sesión de pase de lista por su ID */
+    /**
+     * 🔹 Obtiene sesión por ID.
+     */
     public Optional<AttendanceSession> getById(Integer idSession) {
         return sessionRepository.findById(idSession);
     }
