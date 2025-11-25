@@ -35,12 +35,10 @@ public class AttendanceSessionService {
     @Autowired
     private AcademicFeignClient academicFeignClient;
 
-    /**
-     * Inicia un pase de lista con un horario específico seleccionado por el profesor.
-     */
+    /** 🔹 Inicia un pase de lista con un horario específico seleccionado por el profesor*/
     @Transactional
     public AttendanceSession startSession(AttendanceSessionDTO dto) {
-        // 🧩 Crear entidad
+        // Crear entidad
         AttendanceSession session = new AttendanceSession();
         session.setIdGroupCourse(dto.getIdGroupCourse());
         session.setIdSchedule(dto.getIdSchedule());
@@ -53,14 +51,14 @@ public class AttendanceSessionService {
 
         sessionRepository.save(session);
 
-        // 1️⃣ Validar la relación grupo-curso
+        // Validar la relación grupo-curso
         GroupCourse relation = groupCourseRepository.findById(dto.getIdGroupCourse())
                 .orElseThrow(() -> new RuntimeException("GroupCourse no encontrado con ID: " + dto.getIdGroupCourse()));
 
         Integer idGroup = relation.getIdGroup();
         Integer idCourse = relation.getIdCourse();
 
-        // 2️⃣ Obtener nombre del curso desde academic-ms
+        // Obtener nombre del curso desde academic-ms
         String courseName = "Curso";
         try {
             Map<String, Object> course = academicFeignClient.getCourseById(idCourse);
@@ -68,23 +66,23 @@ public class AttendanceSessionService {
                 courseName = (String) course.get("courseName");
             }
         } catch (Exception e) {
-            System.err.println("⚠️ No se pudo obtener el nombre del curso: " + e.getMessage());
+            System.err.println("No se pudo obtener el nombre del curso: " + e.getMessage());
         }
 
-        // 3️⃣ Obtener alumnos inscritos desde users-ms
+        // Obtener alumnos inscritos desde users-ms
         List<EnrollmentDTO> enrollments = enrollmentFeignClient.getEnrollmentsByGroup(idGroup);
         if (enrollments.isEmpty()) {
             throw new RuntimeException("No hay estudiantes inscritos en el grupo asociado.");
         }
 
-        // 4️⃣ Enviar correo con plantilla a cada alumno
+        // Enviar correo con plantilla a cada alumno
         for (EnrollmentDTO enrollment : enrollments) {
             String email = enrollment.getStudentEmail();
             String fullName = enrollment.getStudentName();
 
             if (email == null || fullName == null) continue;
 
-            // ✅ Crear DTO para notifications-ms
+            // Crear DTO para notifications-ms
             NotificationDTO notification = new NotificationDTO();
             notification.setRecipientEmail(email);
             notification.setSubject("📋 Registro de asistencia – " + courseName);
@@ -102,17 +100,19 @@ public class AttendanceSessionService {
             try {
                 notificationsFeignClient.sendAttendanceEmail(notification);
             } catch (Exception e) {
-                System.err.println("⚠️ Error enviando correo a " + email + ": " + e.getMessage());
+                System.err.println("Error enviando correo a " + email + ": " + e.getMessage());
             }
         }
 
         return session;
     }
 
+    /** 🔹 Obtiene todas las sesiones de pase de lista */
     public List<AttendanceSession> getAllSessions() {
         return sessionRepository.findAll();
     }
 
+    /** 🔹 Obtiene una sesión de pase de lista por su ID */
     public Optional<AttendanceSession> getById(Integer idSession) {
         return sessionRepository.findById(idSession);
     }

@@ -84,22 +84,20 @@ public class AttendanceService {
         attendanceRepository.deleteById(id);
     }
 
-    // ================================================================
-    // 🔸 Nuevo flujo: marcar asistencia automáticamente (por sesión activa)
-    // ================================================================
+    /** 🔹 Marcar asistencia automáticamente (por sesión activa) */
     @Transactional
     public AttendanceDTO markAttendance(AttendanceMarkDTO dto) {
-        // 1️⃣ Buscar sesión activa (OPEN) por grupo-curso
+        // Buscar sesión activa (OPEN) por grupo-curso
         AttendanceSession session = sessionRepository
                 .findTopByIdGroupCourseAndStatus(dto.getIdGroupCourse(), "OPEN")
                 .orElseThrow(() -> new RuntimeException("No hay una sesión activa para este grupo."));
 
-        // 2️⃣ Validar tiempo de expiración
+        // Validar tiempo de expiración
         if (LocalDateTime.now().isAfter(session.getExpiresAt())) {
             throw new RuntimeException("La sesión de asistencia ya expiró.");
         }
 
-        // 3️⃣ Validar ubicación si aplica
+        // Validar ubicación si aplica
         if (session.getGeoLatitude() != null && session.getGeoLongitude() != null) {
             double distancia = calcularDistancia(session.getGeoLatitude(), session.getGeoLongitude(),
                     dto.getLatitude(), dto.getLongitude());
@@ -109,7 +107,7 @@ public class AttendanceService {
             }
         }
 
-        // 4️⃣ Crear y guardar asistencia
+        // Crear y guardar asistencia
         Attendance attendance = new Attendance();
         attendance.setIdSchedule(session.getIdSchedule());
         attendance.setIdStudent(dto.getIdStudent());
