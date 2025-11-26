@@ -111,6 +111,17 @@ public class AttendanceController {
     public ResponseEntity<?> markAttendance(@RequestBody AttendanceMarkDTO dto) {
         try {
             AttendanceDTO attendance = attendanceService.markAttendance(dto);
+        
+            // 📡 Notificar en tiempo real al grupo correspondiente
+            if (attendance.getIdSchedule() != null) {
+                scheduleRepository.findById(attendance.getIdSchedule()).ifPresent(schedule ->
+                    messagingTemplate.convertAndSend(
+                        "/topic/attendances/group-course/" + schedule.getIdGroupCourse(),
+                        attendance
+                    )
+                );
+            }
+        
             return ResponseEntity.ok(attendance);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
