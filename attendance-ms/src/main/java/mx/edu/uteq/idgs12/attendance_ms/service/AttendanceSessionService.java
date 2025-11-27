@@ -11,6 +11,7 @@ import mx.edu.uteq.idgs12.attendance_ms.entity.GroupCourse;
 import mx.edu.uteq.idgs12.attendance_ms.repository.AttendanceSessionRepository;
 import mx.edu.uteq.idgs12.attendance_ms.repository.GroupCourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,9 @@ public class AttendanceSessionService {
 
     @Autowired
     private AcademicFeignClient academicFeignClient;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     /** Inicia un pase de lista con un horario seleccionado */
     @Transactional
@@ -122,6 +126,12 @@ public class AttendanceSessionService {
 
                 session.setStatus("CLOSED");
                 sessionRepository.save(session);
+
+                // Notificar a WebSocketque que la sesión se cerró
+                messagingTemplate.convertAndSend(
+                        "/topic/sessions/group-course/" + session.getIdGroupCourse(),
+                        session
+                );
 
                 System.out.println("Sesión cerrada automáticamente: ID = " + session.getIdSession());
             }
