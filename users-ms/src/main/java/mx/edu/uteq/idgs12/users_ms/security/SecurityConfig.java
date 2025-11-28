@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // permitir actuator health sin login
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                     
                         // endpoints públicos existentes
                         .requestMatchers(
