@@ -243,6 +243,47 @@ services:
       retries: 3
       start_period: 40s
 
+
+    # ============================
+  #          CHAT-MS
+  # ============================
+  chat-ms:
+    build:
+      context: ./chat-ms
+      dockerfile: Dockerfile
+    container_name: chat-ms
+    ports:
+      - "8085:8085"
+
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CHAT_SERVER_PORT=8085
+
+      # === DATABASE ===
+      - USERS_DB_URL=jdbc:postgresql://ep-fragrant-brook-a4now1ye-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+      - USERS_DB_USER=neondb_owner
+      - USERS_DB_PASSWORD=npg_dNiD1SO3Gvqt
+
+      # === EUREKA ===
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - EUREKA_INSTANCE_HOSTNAME=chat-ms
+
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+
+    networks:
+      - roster-net
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://chat-ms:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+
   # ============================
   #        API GATEWAY
   # ============================
