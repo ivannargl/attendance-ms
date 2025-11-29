@@ -8,6 +8,7 @@ public class EnrollmentDTO {
     private Integer idEnrollment;
     private Integer idStudent;
     private String studentName;
+    private String studentEmail;
     private Integer idGroup;
     private String groupCode;
     private LocalDate enrollmentDate;

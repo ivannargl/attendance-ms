@@ -1,6 +1,7 @@
 package mx.edu.uteq.idgs12.attendance_ms.controller;
 
 import mx.edu.uteq.idgs12.attendance_ms.dto.AttendanceDTO;
+import mx.edu.uteq.idgs12.attendance_ms.dto.AttendanceMarkDTO;
 import mx.edu.uteq.idgs12.attendance_ms.repository.ScheduleRepository;
 import mx.edu.uteq.idgs12.attendance_ms.service.AttendanceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +56,7 @@ public class AttendanceController {
         try {
             AttendanceDTO saved = attendanceService.save(dto);
 
-            // 📡 Obtener idGroupCourse desde el Schedule asociado
+            // 📡 Notificar en tiempo real
             if (saved.getIdSchedule() != null) {
                 scheduleRepository.findById(saved.getIdSchedule()).ifPresent(schedule ->
                     messagingTemplate.convertAndSend(
@@ -102,6 +103,28 @@ public class AttendanceController {
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    /** 🔹 Marcar asistencia automáticamente por sesión activa */
+    @PostMapping("/mark")
+    public ResponseEntity<?> markAttendance(@RequestBody AttendanceMarkDTO dto) {
+        try {
+            AttendanceDTO attendance = attendanceService.markAttendance(dto);
+        
+            // 📡 Notificar en tiempo real al grupo correspondiente
+            if (attendance.getIdSchedule() != null) {
+                scheduleRepository.findById(attendance.getIdSchedule()).ifPresent(schedule ->
+                    messagingTemplate.convertAndSend(
+                        "/topic/attendances/group-course/" + schedule.getIdGroupCourse(),
+                        attendance
+                    )
+                );
+            }
+        
+            return ResponseEntity.ok(attendance);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

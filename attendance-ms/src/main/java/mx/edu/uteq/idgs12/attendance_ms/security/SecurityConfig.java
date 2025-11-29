@@ -31,13 +31,19 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 👇 PERMITIR WebSocket + STOMP sin JWT
-                        .requestMatchers("/ws/**").permitAll()
-                        .requestMatchers("/topic/**", "/app/**").permitAll()
-
-                        // 👇 El resto de la API sigue protegida con JWT
-                        .requestMatchers("/api/**").authenticated()
-                        .anyRequest().authenticated()
+                    // permitir WebSocket sin auth
+                    .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
+                
+                    // permitir actuator health sin login
+                    .requestMatchers("/actuator/health").permitAll()
+                
+                    /* // endpoints públicos existentes
+                    .requestMatchers(
+                        "/api/auth/**"
+                    ).permitAll()*/
+                
+                    // todo lo demás requiere JWT
+                    .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

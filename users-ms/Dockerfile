@@ -1,23 +1,18 @@
-FROM eclipse-temurin:21-jdk AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
+
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
 
-# Copiar proyecto
-COPY . .
-
-# Instalar Maven
-RUN apt-get update && apt-get install -y maven
-
-# Construir JAR
 RUN mvn -q -DskipTests package
 
-# ====== Runtime ======
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Copiar JAR build
 COPY --from=build /app/target/users-ms-0.0.1-SNAPSHOT.jar app.jar
 
-EXPOSE 8080
+EXPOSE 8081
 
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]

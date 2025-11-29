@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="x-apple-disable-message-reformatting" />
+    <title>Registro de asistencia</title>
+    <!--[if mso]>
+      <noscript>
+        <xml>
+          <o:OfficeDocumentSettings>
+            <o:PixelsPerInch>96</o:PixelsPerInch>
+          </o:OfficeDocumentSettings>
+        </xml>
+      </noscript>
+    <![endif]-->
+  </head>
+
+  <body style="margin:0;padding:0;background:#e8ecf4;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td align="center" style="padding:40px 20px;background:#e8ecf4;">
+          
+          <!-- Main Card -->
+          <table
+            role="presentation"
+            width="600"
+            cellspacing="0"
+            cellpadding="0"
+            border="0"
+            style="
+              width:600px;
+              max-width:100%;
+              border-collapse:separate;
+              background:#ffffff;
+              border-radius:16px;
+              overflow:hidden;
+              box-shadow:0 4px 20px rgba(0,0,0,.08);
+            "
+          >
+            <!-- Header Section with Brand -->
+            <tr>
+              <td style="padding:40px 40px 20px 40px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;">
+                  <tr>
+                    <td valign="middle" style="padding:0 10px 0 0;">
+                      <!-- Brand logo -->
+                      <img
+                        src="https://storage.googleapis.com/roster-storage/logo.png"
+                        alt="Roster Logo"
+                        width="24"
+                        height="24"
+                        style="
+                          width:24px;
+                          height:24px;
+                          display:inline-block;
+                          vertical-align:middle;
+                          border:0;
+                        "
+                      />
+                    </td>
+                    <td valign="middle" style="padding:0;">
+                      <div
+                        style="
+                          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+                          font-size:16px;
+                          line-height:24px;
+                          color:#1a1a1a;
+                          font-weight:600;
+                        "
+                      >
+                        Roster · Asistencias
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Title, CTA and Illustration Section -->
+            <tr>
+              <td style="padding:0 40px 32px 40px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;">
+                  <tr>
+                    <!-- Left: Title, Subtitle and Button -->
+                    <td valign="top" align="left" style="width:68%;padding:0 20px 0 0;">
+                      <!-- Main Title -->
+                      <h1
+                        style="
+                          margin:0 0 12px 0;
+                          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+                          font-size:32px;
+                          line-height:38px;
+                          color:#1a1a1a;
+                          font-weight:700;
+                          letter-spacing:-0.02em;
+                        "
+                      >
+                        Registro de asistencia
+                      </h1>
+
+                      <!-- Subtitle -->
+                      <p
+                        style="
+                          margin:0 0 24px 0;
+                          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+                          font-size:15px;
+                          line-height:22px;
+                          color:#666666;
+                        "
+                      >
+                        Confirma tu asistencia hoy y continúa.
+                      </p>
+
+                      <!-- CTA Button -->
+                      <!--[if mso]>
+                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" href="${attendanceLink}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="21%" stroke="f" fillcolor="#5b8def">
+                          <w:anchorlock/>
+                          <center style="color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:600;">
+                            Registrar asistencia
+                          </center>
+                        </v:roundrect>
+                      <![endif]-->
+                      <!--[if !mso]><!-->
+                      <a
+                        th:href="${attendanceLink}"
+                        target="_blank"
+                        style="
+                          display:inline-block;
+                          background:#5b8def;
+                          color:#ffffff !important;
+                          text-decoration:none;
+                          font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+                          font-size:15px;
+                          font-weight:600;
+                          line-height:48px;
+                          height:48px;
+                          padding:0 32px;
+                          border-radius:10px;
+                          box-shadow:0 2px 8px rgba(91,141,239,.25);
+                        "
+                      >
+                        Registrar asistencia
+                      </a>
+                      <!--<![endif]-->
+                    </td>
+
+                    <!-- Right: Illustration -->
+                    <td valign="middle" align="right" style="width:32%;padding:0;">
+                      <!-- Isometric illustration -->
+                      <img
+                        src="https://storage.googleapis.com/roster-storage/bf4485f0-a90b-401b-b82c-2cdc7df23dd9.png"
+                        alt="Illustration"
+                        width="200"
+                        style="
+                          width:200px;
+                          max-width:100%;
+                          height:auto;
+                          display:block;
+                          border:0;
+                        "
+                      />
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Divider -->
+            <tr>
+              <td style="padding:0 40px;">
+                <div style="height:1px;background:#e8ecf4;"></div>
+              </td>
+            </tr>
+
+            <!-- Body Content -->
+            <tr>
+              <td style="padding:32px 40px;">
+                <div
+                  style="
+                    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+                    font-size:15px;
+                    line-height:24px;
+                    color:#1a1a1a;
+                  "
+                >
+                  <p style="margin:0 0 16px 0;">
+                    Hola <strong th:text="${studentName}">Nombre estudiante</strong>,
+                  </p>
+
+                  <p style="margin:0 0 16px 0;color:#4a4a4a;">
+                    Tu profesor ha iniciado el pase de lista para el curso
+                    <strong th:text="${courseName}">Nombre curso</strong>.
+                  </p>
+
+                  <p style="margin:0 0 20px 0;color:#4a4a4a;">
+                    Para confirmar tu asistencia, presiona el botón de arriba. Si no lo solicitaste o ya registraste tu asistencia, puedes ignorar este correo.
+                  </p>
+
+                  <!-- Info Box -->
+                  <div
+                    style="
+                      margin:0;
+                      padding:16px 20px;
+                      border-radius:10px;
+                      background:#f5f7fa;
+                      border:1px solid #e8ecf4;
+                    "
+                  >
+                    <p
+                      style="
+                        margin:0;
+                        font-size:14px;
+                        line-height:22px;
+                        color:#4a4a4a;
+                      "
+                    >
+                      ⏳ Este enlace estará disponible durante los próximos <strong>15 minutos</strong>.
+                    </p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding:32px 40px;background:#ffffff;">
+                <p
+                  style="
+                    margin:0;
+                    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+                    font-size:13px;
+                    line-height:20px;
+                    color:#999999;
+                  "
+                >
+                  © 2025 Roster · Sistema de pase de lista
+                </p>
+              </td>
+            </tr>
+          </table>
+
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
